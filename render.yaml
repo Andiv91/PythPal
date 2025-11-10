@@ -23,7 +23,7 @@ services:
         value: "1"
 
   # Frontend React (sitio estático)
-  - type: static
+  - type: static_site
     name: plataforma-frontend
     rootDir: frontend
     buildCommand: npm ci --legacy-peer-deps && npm run build
