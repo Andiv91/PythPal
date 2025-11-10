@@ -22,9 +22,9 @@ services:
       - key: DB_POOL_MIN
         value: "1"
 
+staticSites:
   # Frontend React (sitio estático)
-  - type: static_site
-    name: plataforma-frontend
+  - name: plataforma-frontend
     rootDir: frontend
     buildCommand: npm ci --legacy-peer-deps && npm run build
     staticPublishPath: build
