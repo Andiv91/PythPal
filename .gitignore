@@ -1,0 +1,21 @@
+# Node/JS
+node_modules/
+**/node_modules/
+**/.cache/
+**/build/
+**/dist/
+*.log
+npm-debug.log*
+yarn-error.log*
+.env
+.env.*
+
+# Java/Maven
+backend/target/
+
+# Editors/OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+

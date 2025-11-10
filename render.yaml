@@ -1,0 +1,36 @@
+services:
+  # Backend Spring Boot
+  - type: web
+    name: plataforma-backend
+    env: docker
+    plan: free
+    rootDir: .
+    dockerfilePath: backend/Dockerfile
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      # Configurar estos valores en el panel de Render
+      - key: DB_URL            # jdbc:postgresql://<host>:<port>/<db>?sslmode=require (Neon)
+      - key: DB_USER
+      - key: DB_PASSWORD
+      - key: GOOGLE_CLIENT_ID
+      - key: GOOGLE_CLIENT_SECRET
+      - key: FRONTEND_URL      # https://<tu-frontend>.onrender.com
+      - key: ALLOWED_ORIGINS   # https://<tu-frontend>.onrender.com,https://localhost:3000
+      - key: DB_POOL_MAX
+        value: "3"
+      - key: DB_POOL_MIN
+        value: "1"
+
+  # Frontend React (sitio estático)
+  - type: static
+    name: plataforma-frontend
+    rootDir: frontend
+    buildCommand: npm ci --legacy-peer-deps && npm run build
+    staticPublishPath: build
+    envVars:
+      # URL pública del backend
+      - key: REACT_APP_URL_BACKEND
+        # Establécela tras crear el backend: https://plataforma-backend.onrender.com
+        value: ""
+
