@@ -7,7 +7,7 @@ services:
     rootDir: .
     dockerfilePath: backend/Dockerfile
     autoDeploy: true
-    healthCheckPath: /actuator/health
+    healthCheckPath: /
     envVars:
       # Configurar estos valores en el panel de Render
       - key: DB_URL            # jdbc:postgresql://<host>:<port>/<db>?sslmode=require (Neon)

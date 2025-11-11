@@ -3,11 +3,11 @@ FROM maven:3.9.8-eclipse-temurin-17 AS builder
 WORKDIR /app
 
 # Copiamos pom primero para aprovechar la cache de dependencias
-COPY pom.xml .
+COPY backend/pom.xml ./pom.xml
 RUN mvn -q -B -DskipTests dependency:go-offline
 
 # Copiamos el resto del código y construimos
-COPY src ./src
+COPY backend/src ./src
 RUN mvn -q -B -DskipTests package
 
 ## -------- STAGE 2: Runtime (slim JRE) --------
