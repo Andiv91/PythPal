@@ -34,7 +34,7 @@ function mapToPiston(language) {
   }
 }
 
-export default function CodeExecutor({ expectedOutput = 'Hello, World!', activityId, language = 'python' }) {
+export default function CodeExecutor({ expectedOutput = 'Hello, World!', activityId, language = 'python', useTestcases = false }) {
   const normalized = (language || 'python').toLowerCase();
   const [code, setCode] = useState(defaultSnippets[normalized] || defaultSnippets.python);
   const [output, setOutput] = useState('');
@@ -53,12 +53,13 @@ export default function CodeExecutor({ expectedOutput = 'Hello, World!', activit
     if (!activityId) return;
     try {
       const durationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
-      await fetch(`${API_URL}/api/submissions/${activityId}`, {
+      const res = await fetch(`${API_URL}/api/submissions/${activityId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ code, output: outputToSave, durationSeconds }),
       });
+      try { return await res.json(); } catch { return null; }
     } catch (err) {
       // silent
     }
@@ -79,6 +80,14 @@ export default function CodeExecutor({ expectedOutput = 'Hello, World!', activit
       const data = await response.json();
       if (!data.output) {
         setOutput('Error en código, revísalo :)');
+      } else if (useTestcases) {
+        // Modo testcases: solo mostramos salida y registramos envío; el backend califica
+        setSuccess(false);
+        setOutput(data.output);
+        const saveResp = await handleSaveSubmission(data.output);
+        if (saveResp && saveResp.message) {
+          setOutput(saveResp.message);
+        }
       } else if (expectedOutput && data.output.trim() === expectedOutput.trim()) {
         setSuccess(true);
         setOutput(data.output);

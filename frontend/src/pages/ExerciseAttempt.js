@@ -126,6 +126,7 @@ export default function ExerciseAttempt() {
         expectedOutput={activity.expectedOutput}
         activityId={activity.id}
         language={activity.language || 'python'}
+        useTestcases={!!activity.useTestcases}
       />
       {activity.hint && (
         <Box sx={{ mt: 2 }}>

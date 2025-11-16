@@ -19,12 +19,14 @@ public class SubmissionController {
     private final SubmissionService submissionService;
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
+    private final TestCaseRepository testCaseRepository;
 
     public SubmissionController(SubmissionService submissionService, UserRepository userRepository,
-            ActivityRepository activityRepository) {
+            ActivityRepository activityRepository, TestCaseRepository testCaseRepository) {
         this.submissionService = submissionService;
         this.userRepository = userRepository;
         this.activityRepository = activityRepository;
+        this.testCaseRepository = testCaseRepository;
     }
 
     // Estudiante envía una solución
@@ -61,8 +63,19 @@ public class SubmissionController {
         System.out.println("[SUBMIT] code=\n" + submissionRequest.getCode());
         System.out.println("[SUBMIT] output=\n" + submissionRequest.getOutput());
 
-        boolean passed = submissionRequest.getOutput() != null &&
-                submissionRequest.getOutput().trim().equals(activity.getExpectedOutput().trim());
+        boolean passed;
+        SubmissionController.GradeResult gradeResult = null;
+        if (activity.isUseTestcases()) {
+            gradeResult = gradeWithTestcases(activity, submissionRequest.getCode());
+            int total = gradeResult.total;
+            int ok = gradeResult.ok;
+            int score = (int) Math.round(100.0 * ok / Math.max(1, total));
+            passed = score >= 80;
+            System.out.println("[SUBMIT] graded by testcases: ok=" + ok + " total=" + total + " score=" + score + " passed=" + passed);
+        } else {
+            passed = submissionRequest.getOutput() != null &&
+                    submissionRequest.getOutput().trim().equals(activity.getExpectedOutput().trim());
+        }
         System.out.println("[SUBMIT] passed=" + passed);
 
         // Award XP only on first successful pass for this activity (check BEFORE saving)
@@ -96,7 +109,11 @@ public class SubmissionController {
                 passed);
         submission.setDurationSeconds(submissionRequest.getDurationSeconds());
         Submission saved = submissionService.save(submission);
-        return new SubmissionDTO(saved);
+        SubmissionDTO dto = new SubmissionDTO(saved);
+        if (gradeResult != null && gradeResult.hadError) {
+            dto.setMessage("Error al ejecutar código, porfavor verifica.");
+        }
+        return dto;
     }
 
     // Ver todas las submissions de una actividad (para el profesor)
@@ -131,5 +148,77 @@ public class SubmissionController {
         Activity activity = activityRepository.findById(activityId).orElseThrow();
         List<Submission> submissions = submissionService.findByActivity(activity);
         return submissions.stream().map(SubmissionDTO::new).collect(Collectors.toList());
+    }
+
+    // --- Helpers for testcase-based grading ---
+    private static class GradeResult { int total; int ok; boolean hadError; }
+
+    private GradeResult gradeWithTestcases(Activity activity, String code) {
+        var cases = testCaseRepository.findByActivity(activity);
+        GradeResult gr = new GradeResult();
+        gr.total = cases.size();
+        if (cases.isEmpty()) return gr;
+        for (var tc : cases) {
+            String output = runWithInput(activity.getLanguage(), code, tc.getInputData());
+            if (output != null && output.startsWith("Error:")) gr.hadError = true;
+            if (normalize(output).equals(normalize(tc.getExpectedOutput()))) gr.ok++;
+        }
+        return gr;
+    }
+
+    private String runWithInput(String activityLanguage, String code, String stdin) {
+        String lang = mapLang(activityLanguage);
+        String version = mapDefaultVersion(lang);
+        String filename;
+        String lower = lang == null ? "" : lang.toLowerCase();
+        if (lower.startsWith("java")) filename = "Main.java";
+        else if (lower.contains("cpp") || lower.contains("c++")) filename = "main.cpp";
+        else if (lower.startsWith("python")) filename = "main.py";
+        else filename = "main.txt";
+
+        String pistonUrl = "https://emkc.org/api/v2/piston/execute";
+        org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("language", lang);
+        if (version != null && !version.isBlank()) body.put("version", version);
+        body.put("files", java.util.List.of(java.util.Map.of("name", filename, "content", code)));
+        body.put("stdin", stdin);
+        var headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        var entity = new org.springframework.http.HttpEntity<>(body, headers);
+        try {
+            var resp = rt.exchange(pistonUrl, org.springframework.http.HttpMethod.POST, entity, (Class<java.util.Map<String, Object>>)(Class<?>)java.util.Map.class);
+            String output = "";
+            if (resp.getBody() != null && resp.getBody().get("run") != null) {
+                var run = (java.util.Map<String, Object>) resp.getBody().get("run");
+                if (run.get("output") != null) output = run.get("output").toString();
+            }
+            return output;
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    private String mapLang(String activityLanguage) {
+        if (activityLanguage == null) return "python3";
+        String l = activityLanguage.toLowerCase();
+        if (l.startsWith("python")) return "python3";
+        if (l.startsWith("java")) return "java";
+        if (l.contains("cpp") || l.contains("c++")) return "cpp";
+        return "python3";
+    }
+
+    private String mapDefaultVersion(String lang) {
+        if (lang == null) return null;
+        String l = lang.toLowerCase();
+        if (l.startsWith("python")) return "3.10.0";
+        if (l.startsWith("java")) return null;
+        if (l.contains("cpp") || l.contains("c++")) return null;
+        return null;
+    }
+
+    private String normalize(String s) {
+        if (s == null) return "";
+        return s.replace("\r\n", "\n").trim();
     }
 }

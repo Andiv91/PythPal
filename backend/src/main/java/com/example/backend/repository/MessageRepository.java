@@ -11,4 +11,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findBySender(User sender);
     List<Message> findByActivity(Activity activity);
     List<Message> findByRecipientAndActivity(User recipient, Activity activity);
+    void deleteBySender(User sender);
+    void deleteByRecipient(User recipient);
+    void deleteByActivity(Activity activity);
 } 

@@ -6,6 +6,7 @@ import com.example.backend.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -47,6 +49,7 @@ public class SecurityConfig {
             // Configuración de autorización de requests
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/auth-status", "/api/profesores/**").permitAll() // Endpoints públicos
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated() // Cualquier otra petición requiere autenticación
             )
             

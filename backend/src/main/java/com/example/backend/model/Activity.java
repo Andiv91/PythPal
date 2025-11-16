@@ -31,6 +31,10 @@ public class Activity {
     @JoinColumn(name = "teacher_id")
     private User teacher;
 
+    // Si true, la evaluación usa CSV de testcases (score >= 80 pasa)
+    @Column(nullable = false)
+    private boolean useTestcases = false;
+
     // Constructors
     public Activity() {}
 
@@ -67,4 +71,7 @@ public class Activity {
 
     public User getTeacher() { return teacher; }
     public void setTeacher(User teacher) { this.teacher = teacher; }
+
+    public boolean isUseTestcases() { return useTestcases; }
+    public void setUseTestcases(boolean useTestcases) { this.useTestcases = useTestcases; }
 }

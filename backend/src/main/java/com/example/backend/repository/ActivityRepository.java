@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
     List<Activity> findByTeacher(User teacher);
+    long countByTeacher(User teacher);
+    void deleteByTeacher(User teacher);
 }

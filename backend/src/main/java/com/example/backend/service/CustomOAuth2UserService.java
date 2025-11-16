@@ -46,22 +46,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            
-            // Verificar que el rol coincida con el seleccionado
-            if (user.getRole() != selectedRole) {
-                System.out.println("El usuario existe pero el rol seleccionado (" + selectedRole + 
-                        ") no coincide con su rol actual (" + user.getRole() + ")");
-                
-                // Lanzar una excepción para interrumpir el flujo de OAuth2
-                throw new RuntimeException("No puedes iniciar sesión como " + 
-                        (selectedRole == Role.TEACHER ? "profesor" : "estudiante") + 
-                        ". Tu cuenta está registrada como " + 
-                        (user.getRole() == Role.TEACHER ? "profesor" : "estudiante") +
-                        ". Por favor, selecciona el rol correcto e intenta nuevamente.");
-            } else {
-                System.out.println("Usuario existente encontrado con rol coincidente");
+            // Mantener nombre/rol definidos por admin si existen; no forzar selectedRole
+            if (user.getName() == null || user.getName().isBlank()) {
+                user.setName(name);
+                userRepository.save(user);
             }
-            
+            System.out.println("Usuario existente encontrado. Rol actual: " + user.getRole());
             return oAuth2User;
         }
         

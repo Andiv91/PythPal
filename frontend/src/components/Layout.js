@@ -119,7 +119,26 @@ export default function Layout({ children }) {
         </Box>
         {/* Fin logo y nombre */}
         <List>
-          {currentUser?.role === 'TEACHER' ? (
+          {currentUser?.role === 'ADMIN' ? (
+            <>
+              <ListItemButton component={RouterLink} to="/admin/estudiantes" sx={{ borderRadius: 2, mb: 1, mx: 1, color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary, '&:hover': { background: theme.palette.mode === 'dark' ? '#232323' : '#083f34', color: '#fff', }, }}>
+                <ListItemIcon sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }}><PeopleIcon /></ListItemIcon>
+                <ListItemText primary="Estudiantes" sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }} />
+              </ListItemButton>
+              <ListItemButton component={RouterLink} to="/admin/profesores" sx={{ borderRadius: 2, mb: 1, mx: 1, color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary, '&:hover': { background: theme.palette.mode === 'dark' ? '#232323' : '#083f34', color: '#fff', }, }}>
+                <ListItemIcon sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }}><PeopleIcon /></ListItemIcon>
+                <ListItemText primary="Profesores" sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }} />
+              </ListItemButton>
+              <ListItemButton component={RouterLink} to="/admin/ajustes" sx={{ borderRadius: 2, mb: 1, mx: 1, color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary, '&:hover': { background: theme.palette.mode === 'dark' ? '#232323' : '#083f34', color: '#fff', }, }}>
+                <ListItemIcon sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }}><SettingsIcon /></ListItemIcon>
+                <ListItemText primary="Ajustes" sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }} />
+              </ListItemButton>
+              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 2, mb: 1, mx: 1, color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary, '&:hover': { background: theme.palette.mode === 'dark' ? '#232323' : '#083f34', color: '#fff', }, }}>
+                <ListItemIcon sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }}><ExitToAppIcon /></ListItemIcon>
+                <ListItemText primary="Cerrar sesión" sx={{ color: theme.palette.mode === 'light' ? '#fff' : theme.palette.text.primary }} />
+              </ListItemButton>
+            </>
+          ) : currentUser?.role === 'TEACHER' ? (
             <>
               <ListItemButton
                 component={RouterLink}

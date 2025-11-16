@@ -26,6 +26,7 @@ import ChatConversacion from './pages/ChatConversacion';
 import ProfesorForo from './pages/ProfesorForo';
 import TeacherRanking from './pages/TeacherRanking';
 import { ThemeProvider } from './theme/ThemeContext';
+import AdminListPage from './pages/AdminListPage';
 
 // Componente de ejercicio de ejemplo (lo mantenemos como una ruta separada)
 function PythonExercise() {
@@ -121,6 +122,13 @@ function App() {
               <Route path="/ayuda" element={<HelpPage />} />
               <Route path="/contacto" element={<ContactPage />} />
               <Route path="/chat" element={<ProtectedRoute><Layout><ChatConversacion /></Layout></ProtectedRoute>} />
+            </>
+          ) : currentUser?.role === 'ADMIN' ? (
+            <>
+              <Route path="/" element={<ProtectedRoute><Layout><AdminListPage role="STUDENT" /></Layout></ProtectedRoute>} />
+              <Route path="/admin/estudiantes" element={<ProtectedRoute><Layout><AdminListPage role="STUDENT" /></Layout></ProtectedRoute>} />
+              <Route path="/admin/profesores" element={<ProtectedRoute><Layout><AdminListPage role="TEACHER" /></Layout></ProtectedRoute>} />
+              <Route path="/admin/ajustes" element={<ProtectedRoute><Layout><div>Ajustes de administrador</div></Layout></ProtectedRoute>} />
             </>
           ) : currentUser?.role === 'STUDENT' ? (
             <>

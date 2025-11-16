@@ -12,4 +12,6 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     List<Favorite> findByStudent(User student);
     Optional<Favorite> findByStudentAndActivity(User student, Activity activity);
     boolean existsByStudentAndActivity(User student, Activity activity);
+    void deleteByStudent(User student);
+    void deleteByActivity(Activity activity);
 } 

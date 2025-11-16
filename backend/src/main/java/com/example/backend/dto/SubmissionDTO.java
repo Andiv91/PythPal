@@ -10,6 +10,7 @@ public class SubmissionDTO {
     private String output;
     private boolean passed;
     private Integer durationSeconds;
+    private String message;
 
     public SubmissionDTO() {}
 
@@ -43,4 +44,7 @@ public void setPassed(boolean passed) { this.passed = passed; }
 
 public Integer getDurationSeconds() { return durationSeconds; }
 public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
+
+public String getMessage() { return message; }
+public void setMessage(String message) { this.message = message; }
 }
