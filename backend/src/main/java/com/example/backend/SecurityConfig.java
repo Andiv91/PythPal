@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.web.SecurityFilterChain;
@@ -45,6 +46,11 @@ public class SecurityConfig {
         http
             .cors().and() // Habilitar CORS
             .csrf(AbstractHttpConfigurer::disable) // Deshabilitar CSRF para APIs
+            .securityContext(ctx -> ctx.securityContextRepository(securityContextRepository()))
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(1) // Permitir solo una sesión por usuario
+            )
             
             // Configuración de autorización de requests
             .authorizeHttpRequests(auth -> auth
@@ -75,11 +81,6 @@ public class SecurityConfig {
                         }
                     })
                 )
-            )
-            
-            // Configuración para mantener la sesión después de login exitoso
-            .sessionManagement(session -> session
-                .maximumSessions(1) // Permitir solo una sesión por usuario
             )
             
             // HABILITAR LOGIN CONVENCIONAL
