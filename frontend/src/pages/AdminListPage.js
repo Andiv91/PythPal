@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_URL } from '../config';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, Button, TextField, Stack } from '@mui/material';
+import { Box, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, Button, TextField, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Divider } from '@mui/material';
 
 export default function AdminListPage({ role }) {
   const [users, setUsers] = useState([]);
@@ -28,6 +28,9 @@ export default function AdminListPage({ role }) {
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState(role || 'STUDENT');
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailUser, setDetailUser] = useState(null);
+  const [detailStats, setDetailStats] = useState(null);
 
   const onCreate = async () => {
     if (!newEmail || !newName) return;
@@ -58,6 +61,17 @@ export default function AdminListPage({ role }) {
     if (!window.confirm('¿Eliminar usuario y sus datos relacionados?')) return;
     await fetch(`${API_URL}/api/admin/users/${id}?cascade=true`, { method: 'DELETE', credentials: 'include' });
     await load();
+  };
+
+  const onView = async (u) => {
+    try {
+      const s = await fetchStats(u.id);
+      setDetailStats(s);
+    } catch (e) {
+      setDetailStats(null);
+    }
+    setDetailUser(u);
+    setDetailOpen(true);
   };
 
   return (
@@ -101,10 +115,7 @@ export default function AdminListPage({ role }) {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <Button size="small" variant="outlined" onClick={async () => {
-                    const s = await fetchStats(u.id);
-                    alert(JSON.stringify(s, null, 2));
-                  }}>Ver</Button>
+                  <Button size="small" variant="outlined" onClick={() => onView(u)}>Ver</Button>
                 </TableCell>
                 <TableCell align="right">
                   <Button color="error" variant="contained" size="small" onClick={() => onDelete(u.id)}>Eliminar</Button>
@@ -117,6 +128,42 @@ export default function AdminListPage({ role }) {
           </TableBody>
         </Table>
       </Paper>
+
+      <Dialog open={detailOpen} onClose={() => setDetailOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Detalle de usuario</DialogTitle>
+        <DialogContent dividers>
+          {detailUser ? (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 1 }}>{detailUser.name || 'Sin nombre'}</Typography>
+              <Typography color="text.secondary" sx={{ mb: 2 }}>{detailUser.email}</Typography>
+              <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                <Chip label={detailUser.role} color={detailUser.role === 'ADMIN' ? 'warning' : detailUser.role === 'TEACHER' ? 'primary' : 'default'} />
+                {typeof detailUser.xp === 'number' && <Chip label={`XP: ${detailUser.xp}`} />}
+              </Stack>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Estadísticas</Typography>
+              {detailStats ? (
+                <Box>
+                  {detailUser.role === 'STUDENT' ? (
+                    <Typography>- Ejercicios resueltos: <b>{detailStats.solvedCount ?? 0}</b></Typography>
+                  ) : detailUser.role === 'TEACHER' ? (
+                    <Typography>- Ejercicios publicados: <b>{detailStats.publishedCount ?? 0}</b></Typography>
+                  ) : (
+                    <Typography color="text.secondary">Sin métricas específicas para ADMIN</Typography>
+                  )}
+                </Box>
+              ) : (
+                <Typography color="text.secondary">No se pudieron cargar las estadísticas.</Typography>
+              )}
+            </Box>
+          ) : (
+            <Typography color="text.secondary">Cargando…</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailOpen(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

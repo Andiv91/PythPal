@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 // removed unused Optional import
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/submissions")
@@ -20,13 +21,15 @@ public class SubmissionController {
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
     private final TestCaseRepository testCaseRepository;
+    private final MessageRepository messageRepository;
 
     public SubmissionController(SubmissionService submissionService, UserRepository userRepository,
-            ActivityRepository activityRepository, TestCaseRepository testCaseRepository) {
+            ActivityRepository activityRepository, TestCaseRepository testCaseRepository, MessageRepository messageRepository) {
         this.submissionService = submissionService;
         this.userRepository = userRepository;
         this.activityRepository = activityRepository;
         this.testCaseRepository = testCaseRepository;
+        this.messageRepository = messageRepository;
     }
 
     // Estudiante envía una solución
@@ -109,6 +112,15 @@ public class SubmissionController {
                 passed);
         submission.setDurationSeconds(submissionRequest.getDurationSeconds());
         Submission saved = submissionService.save(submission);
+
+        // Si aprobó, verificar si completó todas las actividades del profesor y enviar certificado
+        if (passed && activity.getTeacher() != null) {
+            User teacher = activity.getTeacher();
+            if (hasCompletedAllFromTeacher(student, teacher)) {
+                maybeSendCertificateMessage(student, teacher, activity);
+            }
+        }
+
         SubmissionDTO dto = new SubmissionDTO(saved);
         if (gradeResult != null && gradeResult.hadError) {
             dto.setMessage("Error al ejecutar código, porfavor verifica.");
@@ -220,5 +232,30 @@ public class SubmissionController {
     private String normalize(String s) {
         if (s == null) return "";
         return s.replace("\r\n", "\n").trim();
+    }
+
+    private boolean hasCompletedAllFromTeacher(User student, User teacher) {
+        var teacherActivities = activityRepository.findByTeacher(teacher);
+        if (teacherActivities.isEmpty()) return false;
+        var passedActivities = submissionService.findByStudent(student).stream()
+                .filter(Submission::isPassed)
+                .map(Submission::getActivity)
+                .collect(java.util.stream.Collectors.toSet());
+        return teacherActivities.stream().allMatch(passedActivities::contains);
+    }
+
+    private void maybeSendCertificateMessage(User student, User teacher, Activity referenceActivity) {
+        String urlPath = "/api/certificates/teacher/" + teacher.getId() + "/student/" + student.getId();
+        String content = "¡Felicidades! Tu certificado está listo. Descárgalo aquí: " + urlPath;
+        boolean exists = messageRepository.findByRecipient(student).stream()
+                .anyMatch(m -> content.equals(m.getContent()));
+        if (exists) return;
+        Message msg = new Message();
+        msg.setContent(content);
+        msg.setTimestamp(LocalDateTime.now());
+        msg.setActivity(referenceActivity);
+        msg.setSender(teacher);
+        msg.setRecipient(student);
+        messageRepository.save(msg);
     }
 }

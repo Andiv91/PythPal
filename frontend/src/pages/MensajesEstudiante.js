@@ -19,10 +19,12 @@ export default function MensajesEstudiante() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/messages/sent`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setMensajes(data))
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch(`${API_URL}/api/messages/sent`, { credentials: 'include' }).then(r => r.ok ? r.json() : []),
+      fetch(`${API_URL}/api/messages/received`, { credentials: 'include' }).then(r => r.ok ? r.json() : [])
+    ]).then(([sent, received]) => {
+      setMensajes([...(Array.isArray(sent) ? sent : []), ...(Array.isArray(received) ? received : [])]);
+    }).finally(() => setLoading(false));
   }, []);
 
   // Agrupar mensajes por ejercicio y por profesor, mostrar solo el último mensaje de cada profesor
@@ -65,9 +67,13 @@ export default function MensajesEstudiante() {
                   onClick={() => navigate('/chat', { state: { activityId: msg.activityId, activityTitle: title, otherUserId, otherUserName } })}>
                   <ListItemText
                     primary={<>
-                      <b>Para el profesor {msg.recipientName}</b> escribiste:
+                      {currentUser && msg.senderId === currentUser.id ? (
+                        <b>Para {msg.recipientName}</b>
+                      ) : (
+                        <b>De {msg.senderName}</b>
+                      )}
                     </>}
-                    secondary={msg.content}
+                    secondary={renderContent(msg.content)}
                   />
                   <Chip label={new Date(msg.timestamp).toLocaleString()} size="small" sx={{ ml: 2 }} />
                 </ListItem>
@@ -78,4 +84,19 @@ export default function MensajesEstudiante() {
       ))}
     </Box>
   );
+}
+
+function renderContent(text) {
+  if (!text) return null;
+  const match = text.match(/(\/api\/certificates[^\s]*)/);
+  if (match) {
+    const href = `${API_URL}${match[1]}`;
+    return (
+      <span>
+        {text.split(match[1])[0]}
+        <a href={href} target="_blank" rel="noreferrer">Descargar certificado</a>
+      </span>
+    );
+  }
+  return text;
 } 
