@@ -46,8 +46,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            // Si el rol seleccionado no coincide con el rol real, rechazamos el login con mensaje
-            if (selectedRole != null && user.getRole() != selectedRole) {
+            // Si el rol seleccionado no coincide con el rol real, rechazamos el login
+            // EXCEPTO si el usuario es ADMIN (siempre puede entrar)
+            if (selectedRole != null && user.getRole() != selectedRole && user.getRole() != Role.ADMIN) {
                 throw new RuntimeException("Rol equivocado. Tu cuenta está registrada como " + user.getRole());
             }
             // Actualizar nombre si falta

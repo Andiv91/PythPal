@@ -8,10 +8,19 @@ export default function AdminListPage({ role }) {
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch(`${API_URL}/api/admin/users?role=${role}`, { credentials: 'include' });
-    const data = await res.json();
-    setUsers(data);
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users?role=${role}`, { credentials: 'include' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Error ${res.status}`);
+      }
+      const data = await res.json();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [role]);
@@ -36,6 +45,7 @@ export default function AdminListPage({ role }) {
 
   const fetchStats = async (id) => {
     const res = await fetch(`${API_URL}/api/admin/users/${id}/stats`, { credentials: 'include' });
+    if (!res.ok) throw new Error('No autorizado');
     return await res.json();
   };
 
