@@ -6,6 +6,7 @@ import com.example.backend.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -54,9 +55,18 @@ public class SecurityConfig {
             
             // Configuración de autorización de requests
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/auth-status", "/api/profesores/**").permitAll() // Endpoints públicos
+                // Recursos estáticos y SPA (frontend servido por el backend)
+                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.ico").permitAll()
+                .requestMatchers(HttpMethod.GET, "/static/**", "/assets/**", "/*.js", "/*.css", "/*.png", "/*.svg", "/*.webp").permitAll()
+                // OAuth y endpoints públicos
+                .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/auth-status", "/api/profesores/**").permitAll()
+                // Admin sólo con rol
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated() // Cualquier otra petición requiere autenticación
+                // Resto de API requiere autenticación
+                .requestMatchers("/api/**").authenticated()
+                // TODO: otras rutas del frontend deben cargarse sin exigir auth (la app decidirá)
+                .anyRequest().permitAll()
             )
             
             // Configuración para responder con 401 en caso de falta de autenticación
