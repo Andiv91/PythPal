@@ -8,7 +8,13 @@ public class SpaController {
 
     // Redirige cualquier ruta sin extensión (sin punto) a index.html.
     // Los endpoints /api/** tienen precedencia por ser más específicos.
-    @RequestMapping({"/{path:[^\\.]*}", "/**/{path:[^\\.]*}"})
+    @RequestMapping({
+        "/{p:^(?!api$)[^\\.]*}",
+        "/{p:^(?!api$)[^\\.]*}/{p2:[^\\.]*}",
+        "/{p:^(?!api$)[^\\.]*}/{p2:[^\\.]*}/{p3:[^\\.]*}",
+        "/{p:^(?!api$)[^\\.]*}/{p2:[^\\.]*}/{p3:[^\\.]*}/{p4:[^\\.]*}",
+        "/{p:^(?!api$)[^\\.]*}/{p2:[^\\.]*}/{p3:[^\\.]*}/{p4:[^\\.]*}/{p5:[^\\.]*}"
+    })
     public String forwardToIndex() {
         return "forward:/index.html";
     }
