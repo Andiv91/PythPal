@@ -6,11 +6,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class SpaController {
 
-    // Redirige cualquier ruta que no sea /api/** ni un recurso con punto a index.html
-    @RequestMapping(value = {
-            "/{path:^(?!api$).*$}",
-            "/{path:^(?!api$).*$}/**"
-    })
+    // Redirige cualquier ruta sin extensión (sin punto) a index.html.
+    // Los endpoints /api/** tienen precedencia por ser más específicos.
+    @RequestMapping({"/{path:[^\\.]*}", "/**/{path:[^\\.]*}"})
     public String forwardToIndex() {
         return "forward:/index.html";
     }
