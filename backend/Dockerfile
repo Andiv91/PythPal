@@ -20,6 +20,9 @@ COPY backend/src ./src
 # Copiamos el build del frontend al directorio estático de Spring
 RUN mkdir -p ./src/main/resources/static
 COPY --from=frontend-builder /frontend/build/ ./src/main/resources/static/
+# Copiamos el logo original del frontend para usarlo en certificados
+RUN mkdir -p ./src/main/resources/static/pictures
+COPY --from=frontend-builder /frontend/src/pictures/pythonlogin.png ./src/main/resources/static/pictures/pythonlogin.png
 RUN mvn -q -B -DskipTests package
 
 ## -------- STAGE 2: Runtime (slim JRE) --------
