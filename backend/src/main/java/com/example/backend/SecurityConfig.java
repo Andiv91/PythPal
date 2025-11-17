@@ -13,9 +13,16 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+
+import com.example.backend.repository.UserRepository;
+import com.example.backend.model.User;
 
 @Configuration
 @EnableMethodSecurity
@@ -24,12 +31,16 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
 
+    private final UserRepository userRepository;
+
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, 
                           OAuth2SuccessHandler oAuth2SuccessHandler,
-                          OAuth2FailureHandler oAuth2FailureHandler) {
+                          OAuth2FailureHandler oAuth2FailureHandler,
+                          UserRepository userRepository) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.oAuth2FailureHandler = oAuth2FailureHandler;
+        this.userRepository = userRepository;
     }
 
     @Bean
@@ -84,10 +95,21 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService)
                     .oidcUserService(new OidcUserService() {
                         @Override
-                        public org.springframework.security.oauth2.core.oidc.user.OidcUser loadUser(
+                        public OidcUser loadUser(
                                 org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest userRequest) {
                             customOAuth2UserService.loadUser(userRequest);
-                            return super.loadUser(userRequest);
+                            OidcUser base = super.loadUser(userRequest);
+                            String email = (String) base.getAttributes().get("email");
+                            User.Role role = User.Role.STUDENT;
+                            if (email != null) {
+                                var dbUser = userRepository.findByEmail(email).orElse(null);
+                                if (dbUser != null && dbUser.getRole() != null) {
+                                    role = dbUser.getRole();
+                                }
+                            }
+                            java.util.Set<GrantedAuthority> authorities = new java.util.LinkedHashSet<>(base.getAuthorities());
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
+                            return new DefaultOidcUser(authorities, base.getIdToken(), base.getUserInfo());
                         }
                     })
                 )
