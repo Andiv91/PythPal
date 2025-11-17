@@ -57,29 +57,33 @@ public class CertificateController {
             drawStripe(cs, width, height, 74, new Color(180, 225, 240));
             drawStripe(cs, width, height, 92, new Color(160, 210, 50));
 
-            // Logo centrado
+            // Logo centrado (cargado desde classpath: static/pictures/pythonlogin.png)
             try {
-                PDImageXObject logo = PDImageXObject.createFromFileByContent(
-                        getClass().getResourceAsStream(\"/static/pictures/pythonlogin.png\"), doc);
-                float logoW = 80;
-                float logoH = logo.getHeight() * (logoW / logo.getWidth());
-                float logoX = (width - logoW) / 2f;
-                float logoY = height - 140;
-                cs.drawImage(logo, logoX, logoY, logoW, logoH);
+                org.springframework.core.io.ClassPathResource res = new org.springframework.core.io.ClassPathResource("static/pictures/pythonlogin.png");
+                if (res.exists()) {
+                    try (java.io.InputStream is = res.getInputStream()) {
+                        byte[] bytes = is.readAllBytes();
+                        PDImageXObject logo = PDImageXObject.createFromByteArray(doc, bytes, "logo");
+                        float logoW = 80;
+                        float logoH = logo.getHeight() * (logoW / logo.getWidth());
+                        float logoX = (width - logoW) / 2f;
+                        float logoY = height - 140;
+                        cs.drawImage(logo, logoX, logoY, logoW, logoH);
 
-                // Texto PythPal bajo el logo
-                String brand = \"PythPal\";
-                float brandSize = 14f;
-                float brandWidth = PDType1Font.HELVETICA_BOLD.getStringWidth(brand) / 1000f * brandSize;
-                cs.beginText();
-                cs.setFont(PDType1Font.HELVETICA_BOLD, brandSize);
-                cs.newLineAtOffset((width - brandWidth) / 2f, logoY - 12);
-                cs.showText(brand);
-                cs.endText();
+                        String brand = "PythPal";
+                        float brandSize = 14f;
+                        float brandWidth = PDType1Font.HELVETICA_BOLD.getStringWidth(brand) / 1000f * brandSize;
+                        cs.beginText();
+                        cs.setFont(PDType1Font.HELVETICA_BOLD, brandSize);
+                        cs.newLineAtOffset((width - brandWidth) / 2f, logoY - 12);
+                        cs.showText(brand);
+                        cs.endText();
+                    }
+                }
             } catch (Exception ignore) {}
 
             // Título
-            String title = \"PythPal certifica que el estudiante:\";
+            String title = "PythPal certifica que el estudiante:";
             float titleSize = 24f;
             float titleWidth = PDType1Font.HELVETICA_BOLD.getStringWidth(title) / 1000f * titleSize;
             cs.beginText();
@@ -99,7 +103,7 @@ public class CertificateController {
             cs.endText();
 
             // Cuerpo
-            String body = \"Completó satisfactoriamente todos los ejercicios propuestos por el profesor:\";
+            String body = "Completó satisfactoriamente todos los ejercicios propuestos por el profesor:";
             float bodySize = 16f;
             float bodyWidth = PDType1Font.HELVETICA.getStringWidth(body) / 1000f * bodySize;
             cs.beginText();
@@ -117,7 +121,7 @@ public class CertificateController {
             cs.showText(teacherName);
             cs.endText();
 
-            String date = \"Fecha: \" + LocalDate.now();
+            String date = "Fecha: " + LocalDate.now();
             float dateSize = 14f;
             float dateWidth = PDType1Font.HELVETICA_OBLIQUE.getStringWidth(date) / 1000f * dateSize;
             cs.beginText();
