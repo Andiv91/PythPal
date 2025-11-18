@@ -172,7 +172,6 @@ public class SubmissionController {
         if (cases.isEmpty()) return gr;
         for (var tc : cases) {
             String output = runWithInput(activity.getLanguage(), code, tc.getInputData());
-            if (output != null && output.startsWith("Error:")) gr.hadError = true;
             if (normalize(output).equals(normalize(tc.getExpectedOutput()))) gr.ok++;
         }
         return gr;
