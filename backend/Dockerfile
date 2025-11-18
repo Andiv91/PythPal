@@ -4,6 +4,8 @@ WORKDIR /frontend
 # Instalar dependencias y compilar React
 COPY frontend/package*.json ./
 RUN npm ci --legacy-peer-deps
+# Instalar dependencia de animación requerida por DotGrid
+RUN npm install gsap@^3.12.5 --save-exact
 COPY frontend/ ./
 RUN npm run build
 
