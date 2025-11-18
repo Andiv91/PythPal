@@ -44,7 +44,8 @@ public class CertificateController {
         response.setHeader("Content-Disposition", "attachment; filename=certificado-" + studentId + "-" + teacherId + ".pdf");
 
         try (PDDocument doc = new PDDocument()) {
-            PDPage page = new PDPage(PDRectangle.LETTER);
+            // Hoja horizontal (landscape)
+            PDPage page = new PDPage(PDRectangle.LETTER.rotate());
             doc.addPage(page);
             PDPageContentStream cs = new PDPageContentStream(doc, page);
 

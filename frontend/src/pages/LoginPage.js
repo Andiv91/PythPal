@@ -24,6 +24,7 @@ import {
 import { Visibility, VisibilityOff, Google } from '@mui/icons-material';
 import logo from '../pictures/python.png';
 import { keyframes } from '@emotion/react';
+import DotGrid from '../components/DotGrid';
 
 // Gradiente animado para fondo dinámico
 const animatedGradient = keyframes`
@@ -136,19 +137,7 @@ function LoginPage() {
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: -1,
-          background: 'linear-gradient(-45deg, #232323, #1976d2, #43cea2, #232323)',
-          backgroundSize: '400% 400%',
-          animation: `${animatedGradient} 15s ease infinite`,
-        }}
-      />
+      <DotGrid />
       <Container maxWidth="lg" sx={{ 
         minHeight: '100vh', 
         display: 'flex', 

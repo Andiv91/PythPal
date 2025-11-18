@@ -128,11 +128,11 @@ export default function EditExercise() {
           ))}
         </TextField>
         <TextField
-          label="Output esperado"
+          label={`Output esperado${useTestcases ? ' (opcional con CSV)' : ''}`}
           value={expectedOutput}
           onChange={e => setExpectedOutput(e.target.value)}
           fullWidth
-          required
+          required={!useTestcases}
           sx={{ mb: 2 }}
         />
         <Box sx={{ mb: 2 }}>
