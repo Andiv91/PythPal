@@ -72,6 +72,18 @@ export default function CodeExecutor({ expectedOutput = 'Hello, World!', activit
     setOutput('');
     const exec = mapToPiston(normalized);
     try {
+      // En modo testcases, si no hay una entrada de prueba, no ejecutamos contra el motor;
+      // guardamos la entrega para que el backend califique con el CSV.
+      if (useTestcases && (!testInput || !testInput.trim())) {
+        const saveResp = await handleSaveSubmission('');
+        if (saveResp && saveResp.message) {
+          setOutput(saveResp.message);
+        } else {
+          setOutput('Enviado para calificación con casos del profesor. Si quieres ver una salida, escribe una entrada de prueba (por ejemplo: 1 2) y vuelve a ejecutar.');
+        }
+        setLoading(false);
+        return;
+      }
       const response = await fetch(`${API_URL}/api/python/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
