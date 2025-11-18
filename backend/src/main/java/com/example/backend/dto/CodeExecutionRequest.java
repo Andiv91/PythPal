@@ -4,6 +4,7 @@ public class CodeExecutionRequest {
     private String language;
     private String code;
     private String version; // agrega este campo
+    private String stdin;   // entrada opcional para pruebas manuales
 
     // Getters and setters
     public String getLanguage() { return language; }
@@ -14,4 +15,7 @@ public class CodeExecutionRequest {
     
     public String getVersion() { return version; }
     public void setVersion(String version) { this.version = version; }
+
+    public String getStdin() { return stdin; }
+    public void setStdin(String stdin) { this.stdin = stdin; }
 }

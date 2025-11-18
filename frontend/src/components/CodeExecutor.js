@@ -43,6 +43,7 @@ export default function CodeExecutor({ expectedOutput = 'Hello, World!', activit
   const [startedAt, setStartedAt] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [testInput, setTestInput] = useState('');
 
   React.useEffect(() => {
     const id = setInterval(() => setElapsed(Math.round((Date.now() - startedAt) / 1000)), 500);
@@ -75,7 +76,7 @@ export default function CodeExecutor({ expectedOutput = 'Hello, World!', activit
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ language: exec.language, version: exec.version, code }),
+        body: JSON.stringify({ language: exec.language, version: exec.version, code, stdin: useTestcases ? testInput : undefined }),
       });
       const data = await response.json();
       if (!data.output) {
@@ -117,6 +118,18 @@ export default function CodeExecutor({ expectedOutput = 'Hello, World!', activit
         fontSize={16}
         setOptions={{ useWorker: false }}
       />
+      {useTestcases && (
+        <div style={{ marginTop: 12 }}>
+          <Typography variant="body2" sx={{ color: '#ccc', mb: 1 }}>Entrada de prueba (opcional):</Typography>
+          <textarea
+            value={testInput}
+            onChange={(e) => setTestInput(e.target.value)}
+            rows={2}
+            placeholder="Ej: 1 2"
+            style={{ width: '100%', background: '#111', color: '#fff', borderRadius: 8, padding: 8, border: '1px solid #333' }}
+          />
+        </div>
+      )}
       <button onClick={handleRun} disabled={loading} style={{ marginTop: 16, padding: '8px 24px', fontSize: 16, borderRadius: 8 }}>
         {loading ? 'Ejecutando...' : 'Ejecutar'}
       </button>

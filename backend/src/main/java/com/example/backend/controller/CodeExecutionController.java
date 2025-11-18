@@ -61,6 +61,9 @@ public class CodeExecutionController {
             filename = "main.txt"; // fallback
         }
         body.put("files", List.of(Map.of("name", filename, "content", request.getCode())));
+        if (request.getStdin() != null && !request.getStdin().isBlank()) {
+            body.put("stdin", request.getStdin());
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
