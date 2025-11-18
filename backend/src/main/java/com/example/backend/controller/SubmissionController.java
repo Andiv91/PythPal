@@ -68,11 +68,13 @@ public class SubmissionController {
 
         boolean passed;
         SubmissionController.GradeResult gradeResult = null;
+        int scoreComputed = -1;
         if (activity.isUseTestcases()) {
             gradeResult = gradeWithTestcases(activity, submissionRequest.getCode());
             int total = gradeResult.total;
             int ok = gradeResult.ok;
             int score = (int) Math.round(100.0 * ok / Math.max(1, total));
+            scoreComputed = score;
             passed = score >= 80;
             System.out.println("[SUBMIT] graded by testcases: ok=" + ok + " total=" + total + " score=" + score + " passed=" + passed);
         } else {
@@ -122,8 +124,9 @@ public class SubmissionController {
         }
 
         SubmissionDTO dto = new SubmissionDTO(saved);
-        if (gradeResult != null && gradeResult.hadError) {
-            dto.setMessage("Error al ejecutar código, porfavor verifica.");
+        if (gradeResult != null) {
+            String status = passed ? "Aprobado" : "No aprobado";
+            dto.setMessage("Resultado: " + status + " — " + gradeResult.ok + "/" + gradeResult.total + " casos correctos (" + scoreComputed + ")");
         }
         return dto;
     }
